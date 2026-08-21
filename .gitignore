@@ -1,0 +1,27 @@
+# Unreal Engine generated / cache directories
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+.vs/
+.vscode/
+*.sln
+*.opensdf
+*.opendb
+*.VC.db
+*.VC.opendb
+*.suo
+*.user
+*.sdf
+*.CodeAnalysisFiles.xml
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Personal files
+/求职简历/

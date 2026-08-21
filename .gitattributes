@@ -1,0 +1,14 @@
+* text=auto
+
+# Unreal Engine binary assets
+*.uasset binary
+*.umap binary
+*.fbx binary
+*.png binary
+*.jpg binary
+*.tga binary
+*.wav binary
+*.mp3 binary
+*.ogg binary
+*.mp4 binary
+*.mov binary
