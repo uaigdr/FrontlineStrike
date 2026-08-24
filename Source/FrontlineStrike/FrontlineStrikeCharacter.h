@@ -56,6 +56,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* ShootAction;
 
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* AimAction;
+
 public:
 
 	/** Constructor */
@@ -65,6 +68,10 @@ protected:
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+public:
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
 
 protected:
 
@@ -78,6 +85,9 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
+
+	void StartAim();
+	void EndAim();
 
 public:
 
@@ -126,6 +136,28 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	bool IsAlive = true;
+
+	UPROPERTY(VisibleAnywhere)
+	bool IsAiming = false;
+
+	UPROPERTY(VisibleAnywhere)
+	float StartTargetLength;
+
+	UPROPERTY(EditAnywhere)
+	float EndTargetLength = 100.0f;
+
+	UPROPERTY(VisibleAnywhere)
+	float StartFOV;
+
+	UPROPERTY(EditAnywhere)
+	float EndFOV = 70.0f;
+
+	UPROPERTY(EditAnywhere)
+	float TargetInterpSpeed = 20.0f;
+
+	UPROPERTY(EditAnywhere)
+	float FOVInterpSpeed = 20.0f;
+
 
 public:
 

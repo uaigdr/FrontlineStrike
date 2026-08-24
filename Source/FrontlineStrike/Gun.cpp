@@ -49,15 +49,19 @@ void AGun::PullTrigger()
 
 		FVector EndLocation = ViewPointLocation + ViewPointRotation.Vector() * MaxRange;
 
+		//碰撞结果
 		FHitResult HitResult;
+
+		//碰撞查询参数
 		FCollisionQueryParams Params;
 
+		//添加被忽略者
 		Params.AddIgnoredActor(this);
 		Params.AddIgnoredActor(GetOwner());
-
 		bool IsHit = GetWorld()->LineTraceSingleByChannel(HitResult, ViewPointLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel1, Params);
 		if (IsHit)
 		{
+			//生成命中特效
 			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ImpactParticleSystem, 
 				HitResult.ImpactPoint, HitResult.ImpactPoint.Rotation());
 

@@ -73,6 +73,21 @@ void AFrontlineStrikeCharacter::BeginPlay()
 		Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("WeaponSocket"));
 		Gun->OwnerContuoller = GetController();
 	}
+
+	StartTargetLength = CameraBoom->TargetArmLength;
+	StartFOV = FollowCamera->FieldOfView;
+}
+
+void AFrontlineStrikeCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	// 目标长度：瞄准时缩短到 EndTargetLength，松开后回到 StartTargetLength
+	float TargetLength = IsAiming ? EndTargetLength : StartTargetLength;
+	float Fov = IsAiming ? EndFOV : StartFOV;
+
+	CameraBoom->TargetArmLength = FMath::FInterpTo(CameraBoom->TargetArmLength, TargetLength, DeltaTime, TargetInterpSpeed);
+	FollowCamera->FieldOfView = FMath::FInterpTo(FollowCamera->FieldOfView, Fov, DeltaTime, FOVInterpSpeed);
 }
 
 void AFrontlineStrikeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -92,7 +107,11 @@ void AFrontlineStrikeCharacter::SetupPlayerInputComponent(UInputComponent* Playe
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFrontlineStrikeCharacter::Look);
 
 		// Shoot
-		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Triggered, this, &AFrontlineStrikeCharacter::Shoot);
+		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Started, this, &AFrontlineStrikeCharacter::Shoot);
+
+		// Aim
+		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &AFrontlineStrikeCharacter::StartAim);
+		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AFrontlineStrikeCharacter::EndAim);
 	}
 	else
 	{
@@ -116,6 +135,16 @@ void AFrontlineStrikeCharacter::Look(const FInputActionValue& Value)
 
 	// route the input
 	DoLook(LookAxisVector.X, LookAxisVector.Y);
+}
+
+void AFrontlineStrikeCharacter::StartAim()
+{
+	IsAiming = true;
+}
+
+void AFrontlineStrikeCharacter::EndAim()
+{
+	IsAiming = false;
 }
 
 void AFrontlineStrikeCharacter::Shoot()
