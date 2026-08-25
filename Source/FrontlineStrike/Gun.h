@@ -58,8 +58,17 @@ public:
 	UPROPERTY(EditAnywhere)
 	USoundBase* ImpactSound;
 
+	UPROPERTY(VisibleAnywhere)
+	bool CanShoot = true;
+
+	UPROPERTY(EditAnywhere)
+	float FireInterval = 0.15f;
+
+	FTimerHandle ShootCooldownTimerHandle;
 
 public:
 
 	void PullTrigger();
+
+	void OnFireCooldownEnd();
 };

@@ -21,8 +21,9 @@ EBTNodeResult::Type UBTTaskNode_Shoot::ExecuteTask(UBehaviorTreeComponent& Owner
 		AFrontlineStrikeCharacter* Owner = OwnerController->MyCharactor;
 		if (Player && Owner && Player->IsAlive)
 		{
-			Owner->Shoot();
+			Owner->StartShoot();
 			return EBTNodeResult::Succeeded;
+			//Owner->EndShoot();
 		}
 	}
 

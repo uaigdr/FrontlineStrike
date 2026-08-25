@@ -76,6 +76,8 @@ void AFrontlineStrikeCharacter::BeginPlay()
 
 	StartTargetLength = CameraBoom->TargetArmLength;
 	StartFOV = FollowCamera->FieldOfView;
+
+	MovementComp = GetCharacterMovement();
 }
 
 void AFrontlineStrikeCharacter::Tick(float DeltaTime)
@@ -107,11 +109,20 @@ void AFrontlineStrikeCharacter::SetupPlayerInputComponent(UInputComponent* Playe
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFrontlineStrikeCharacter::Look);
 
 		// Shoot
-		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Started, this, &AFrontlineStrikeCharacter::Shoot);
+		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Triggered, this, &AFrontlineStrikeCharacter::StartShoot);
+		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Completed, this, &AFrontlineStrikeCharacter::EndShoot);
 
 		// Aim
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &AFrontlineStrikeCharacter::StartAim);
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AFrontlineStrikeCharacter::EndAim);
+
+		// Sprint
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AFrontlineStrikeCharacter::StartSprint);
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AFrontlineStrikeCharacter::EndSprint);
+
+		// SlientWalk
+		EnhancedInputComponent->BindAction(SlientWalkAction, ETriggerEvent::Started, this, &AFrontlineStrikeCharacter::StartSlientWalk);
+		EnhancedInputComponent->BindAction(SlientWalkAction, ETriggerEvent::Completed, this, &AFrontlineStrikeCharacter::EndSlientWalk);
 	}
 	else
 	{
@@ -147,11 +158,65 @@ void AFrontlineStrikeCharacter::EndAim()
 	IsAiming = false;
 }
 
-void AFrontlineStrikeCharacter::Shoot()
+void AFrontlineStrikeCharacter::StartSprint()
 {
+	if (MovementComp)
+	{
+		MoveState = MoveStates::Sprint;
+		MovementComp->MaxWalkSpeed = SprintWalkSpeed;
+	}
+}
+
+void AFrontlineStrikeCharacter::EndSprint()
+{
+	if (MovementComp && MoveState == MoveStates::Sprint)
+	{
+		MoveState = MoveStates::Walk;
+		MovementComp->MaxWalkSpeed = NormalWalkSpeed;
+	}
+}
+
+void AFrontlineStrikeCharacter::StartSlientWalk()
+{
+	if (MovementComp)
+	{
+		MoveState = MoveStates::SlientWalk;
+		MovementComp->MaxWalkSpeed = SlientWalkSpeed;
+	}
+}
+
+void AFrontlineStrikeCharacter::EndSlientWalk()
+{
+	if (MovementComp && MoveState == MoveStates::SlientWalk)
+	{
+		MoveState = MoveStates::Walk;
+		MovementComp->MaxWalkSpeed = NormalWalkSpeed;
+	}
+}
+
+void AFrontlineStrikeCharacter::StartShoot()
+{
+	IsShooting = true;
+	if (MovementComp && MoveState == MoveStates::Sprint)
+	{
+		MovementComp->MaxWalkSpeed = NormalWalkSpeed;
+	}
 	if (Gun) 
 	{ 
-		Gun->PullTrigger(); 
+		if (Gun->CanShoot)
+		{
+			PlayAnimMontage(FireReactMontage, FireAnimPlayRate);
+			Gun->PullTrigger();
+		}
+	}
+}
+
+void AFrontlineStrikeCharacter::EndShoot()
+{
+	IsShooting = false;
+	if (MovementComp && MoveState == MoveStates::Sprint)
+	{
+		MovementComp->MaxWalkSpeed = SprintWalkSpeed;
 	}
 }
 
@@ -201,6 +266,7 @@ void AFrontlineStrikeCharacter::OnDamageTaken(AActor* DamagedActor, float Damage
 {
 	if (IsAlive)
 	{
+		PlayAnimMontage(HitReactMontage);
 		Health = Health > Damage ? Health - Damage : 0;
 		UpdateHUD();
 		if (Health == 0)

@@ -59,6 +59,9 @@ void AGun::PullTrigger()
 		Params.AddIgnoredActor(this);
 		Params.AddIgnoredActor(GetOwner());
 		bool IsHit = GetWorld()->LineTraceSingleByChannel(HitResult, ViewPointLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel1, Params);
+
+		CanShoot = false;
+
 		if (IsHit)
 		{
 			//生成命中特效
@@ -73,6 +76,19 @@ void AGun::PullTrigger()
 				UGameplayStatics::ApplyDamage(HitActor, Damage, OwnerContuoller, this, UDamageType::StaticClass());
 			}
 		}
+
+		GetWorld()->GetTimerManager().SetTimer(
+			ShootCooldownTimerHandle,
+			this,
+			&AGun::OnFireCooldownEnd,
+			FireInterval,
+			false);
 	}
+
+}
+
+void AGun::OnFireCooldownEnd()
+{
+	CanShoot = true;
 }
 

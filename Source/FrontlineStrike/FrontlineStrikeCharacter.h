@@ -17,6 +17,15 @@ struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
+UENUM()
+enum class MoveStates : uint8
+{
+	Idle,        // 原地静止
+	Walk,        //普通行走
+	Sprint,      //疾跑
+	SlientWalk    //静步（慢走）
+};
+
 /**
  *  A simple player-controllable third person character
  *  Implements a controllable orbiting camera
@@ -33,6 +42,9 @@ class AFrontlineStrikeCharacter : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UCharacterMovementComponent* MovementComp;
 	
 protected:
 
@@ -58,6 +70,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* AimAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* SprintAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* SlientWalkAction;
 
 public:
 
@@ -89,10 +107,17 @@ protected:
 	void StartAim();
 	void EndAim();
 
+	void StartSprint();
+	void EndSprint();
+
+	void StartSlientWalk();
+	void EndSlientWalk();
+
 public:
 
 	/** Called for Shooting input */
-	void Shoot();
+	void StartShoot();
+	void EndShoot();
 
 public:
 
@@ -158,6 +183,29 @@ public:
 	UPROPERTY(EditAnywhere)
 	float FOVInterpSpeed = 20.0f;
 
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float NormalWalkSpeed = 500.f;
+
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float SprintWalkSpeed = 700.f;
+
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float SlientWalkSpeed = 200.f;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool IsShooting = false;
+
+	UPROPERTY(VisibleAnywhere)
+	MoveStates MoveState = MoveStates::Idle;
+
+	UPROPERTY(EditAnywhere)
+	UAnimMontage* HitReactMontage;
+
+	UPROPERTY(EditAnywhere)
+	UAnimMontage* FireReactMontage;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float FireAnimPlayRate = 1.33f;
 
 public:
 
