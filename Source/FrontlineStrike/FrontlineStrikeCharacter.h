@@ -6,14 +6,13 @@
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 
-#include "Gun.h"
-
 #include "FrontlineStrikeCharacter.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
 class UInputAction;
 struct FInputActionValue;
+class AGun;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
