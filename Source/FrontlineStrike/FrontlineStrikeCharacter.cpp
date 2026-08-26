@@ -12,6 +12,8 @@
 #include "InputActionValue.h"
 #include "FrontlineStrike.h"
 
+#include "Gun.h"
+
 #include "FrontlineStrikePlayerController.h"
 
 AFrontlineStrikeCharacter::AFrontlineStrikeCharacter()
@@ -72,6 +74,7 @@ void AFrontlineStrikeCharacter::BeginPlay()
 		Gun->SetOwner(this);
 		Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("WeaponSocket"));
 		Gun->OwnerContuoller = GetController();
+		Gun->OwnerCharacter = this;
 	}
 
 	StartTargetLength = CameraBoom->TargetArmLength;

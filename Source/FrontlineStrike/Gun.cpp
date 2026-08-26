@@ -4,6 +4,7 @@
 #include "Gun.h"
 
 #include "Kismet/GameplayStatics.h"
+#include "FrontlineStrikeCharacter.h"
 
 // Sets default values
 AGun::AGun()
@@ -28,6 +29,7 @@ void AGun::BeginPlay()
 	Super::BeginPlay();
 	
 	MuzzleFlashParticleSystem->Deactivate();
+
 }
 
 // Called every frame
@@ -35,6 +37,19 @@ void AGun::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (OwnerCharacter)
+	{
+		float DeltaPitch = CurrentRecoilPitch;
+		float DeltaYaw = CurrentRecoilYaw;
+
+		CurrentRecoilPitch = FMath::FInterpTo(CurrentRecoilPitch, 0, DeltaTime, RecoilReturnSpeed);
+		CurrentRecoilYaw = FMath::FInterpTo(CurrentRecoilYaw, 0, DeltaTime, RecoilReturnSpeed);
+
+		OwnerCharacter->AddControllerPitchInput(CurrentRecoilPitch - DeltaPitch);
+		OwnerCharacter->AddControllerYawInput(CurrentRecoilYaw - DeltaYaw);
+
+		CurrentSpread = FMath::FInterpTo(CurrentSpread, 0.f, DeltaTime, SpreadDecaySpeed);
+	}
 }
 
 void AGun::PullTrigger()
@@ -47,7 +62,23 @@ void AGun::PullTrigger()
 		FRotator ViewPointRotation;
 		OwnerContuoller->GetPlayerViewPoint(ViewPointLocation, ViewPointRotation);
 
-		FVector EndLocation = ViewPointLocation + ViewPointRotation.Vector() * MaxRange;
+		float EffectiveSpread = OwnerCharacter->IsAiming ? AimSpreadAngle : BaseSpreadAngle;
+
+		CurrentSpread = FMath::Min(CurrentSpread + SpreadIncreasePerShot, MaxSpread);
+
+		EffectiveSpread += CurrentSpread;
+
+		FVector Direction = ViewPointRotation.Vector();
+
+		FVector Right = FRotationMatrix(ViewPointRotation).GetUnitAxis(EAxis::Y);
+
+		FVector Up = FRotationMatrix(ViewPointRotation).GetUnitAxis(EAxis::Z);
+
+		Direction = Direction.RotateAngleAxis(FMath::FRandRange(-EffectiveSpread, EffectiveSpread), Right);
+
+		Direction = Direction.RotateAngleAxis(FMath::FRandRange(-EffectiveSpread, EffectiveSpread), Up);
+
+		FVector EndLocation = ViewPointLocation + Direction.GetSafeNormal() * MaxRange;
 
 		//Åö×²½á¹û
 		FHitResult HitResult;
@@ -83,12 +114,27 @@ void AGun::PullTrigger()
 			&AGun::OnFireCooldownEnd,
 			FireInterval,
 			false);
+		ApplyRecoil();
 	}
-
 }
 
 void AGun::OnFireCooldownEnd()
 {
 	CanShoot = true;
+}
+
+void AGun::ApplyRecoil()
+{
+	if (OwnerCharacter)
+	{
+		bool IsAiming = OwnerCharacter->IsAiming;
+
+		float Pitch = IsAiming ? AimRecoilPitch : RecoilPitch;
+		float Yaw = IsAiming ? AimRecoilYaw : RecoilYaw;
+		float PitchOffset = IsAiming ? RecoilPitchOffset : 0.0f;
+
+		CurrentRecoilPitch += RecoilPitch + FMath::FRandRange(0.0f, PitchOffset);
+		CurrentRecoilYaw = FMath::FRandRange(-Yaw, Yaw);
+	}
 }
 
